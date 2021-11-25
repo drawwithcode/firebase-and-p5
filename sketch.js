@@ -5,11 +5,6 @@ const description = `Demonstration of Firebase Realtime Database\nin the context
 function draw() {
   background(220);
 
-  push();
-  textAlign(CENTER);
-  text(description, width / 2, height / 2);
-  pop();
-
   // circles is a JSON dictionary
   if (circles) {
     // you can iterate through properties of the dictionary
@@ -38,6 +33,11 @@ function draw() {
     ellipse(tempCircle.x, tempCircle.y, tempCircle.size);
     pop();
   }
+
+  push();
+  textAlign(CENTER);
+  text(description, width / 2, height / 2);
+  pop();
 }
 
 let tempCircle = null;
