@@ -1,69 +1,74 @@
-function setup() {
-  createCanvas(windowWidth, windowHeight);
-}
-const description = `Demonstration of Firebase Realtime Database\nin the context of a P5 sketch.\nClick and drag to make "pallozzi"!\n`;
-function draw() {
-  background(220);
+let nameInput;
+let submitButton;
+let button;
+let score;
+// firebase global variables
+let db;
+let database;
 
-  // circles is a JSON dictionary
-  if (circles) {
-    // you can iterate through properties of the dictionary
-    // for instance "-MpMVl3JPWaplJmTwxcx" is a property (or 'key')
-    for (key in circles) {
-      const c = circles[key];
-      push();
-      noStroke();
-      fill(color(c.fill.r, c.fill.g, c.fill.b));
-      ellipse(c.x, c.y, c.size);
-      pop();
-    }
-    // you can transform the dictionary into an array
-    // and interate through it, this is more convenient
-    const circlesArray = Object.values(circles);
-    push();
-    textAlign(CENTER);
-    text(circlesArray.length + " nice circles", width/2, height/2 + 50);
-    pop();
-  }
+async function preload() {
+  // load firebase app module
+  const fb_app = "https://www.gstatic.com/firebasejs/9.14.0/firebase-app.js";
+  const { initializeApp } = await import(fb_app);
 
-  if (tempCircle) {
-    push();
-    noStroke();
-    fill(color(tempCircle.fill.r, tempCircle.fill.g, tempCircle.fill.b));
-    ellipse(tempCircle.x, tempCircle.y, tempCircle.size);
-    pop();
-  }
+  // loading firebase database module
+  const fb_database =
+    "https://www.gstatic.com/firebasejs/9.14.0/firebase-database.js";
+  db = await import(fb_database);
 
-  push();
-  textAlign(CENTER);
-  text(description, width / 2, height / 2);
-  pop();
-}
-
-let tempCircle = null;
-function mousePressed() {
-  tempCircle = {
-    x: mouseX,
-    y: mouseY,
-    size: 10,
-    fill: { r: random(255), g: random(255), b: random(255) },
+  // Your web app's Firebase configuration
+  // You can get this information from the firebase console
+  const firebaseConfig = {
+    apiKey: "AIzaSyAwsN7oQEiDugs-Lob4fhr7Uq68oJ0ZdTw",
+    authDomain: "p5-firebase-2022-01.firebaseapp.com",
+    databaseURL:
+      "https://p5-firebase-2022-01-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "p5-firebase-2022-01",
+    storageBucket: "p5-firebase-2022-01.appspot.com",
+    messagingSenderId: "424585230807",
+    appId: "1:424585230807:web:85db369eb5c308cd2f7392",
   };
-  // prevent default
-  return false;
+
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+  // Initialize Database
+  database = db.getDatabase(app);
 }
 
-function mouseDragged() {
-  const _distance = dist(tempCircle.x, tempCircle.y, mouseX, mouseY) * 2;
-  tempCircle.size = min(max(5, _distance), 75);
+function setup() {
+  createCanvas(400, 400);
+  score = 0;
+  createP("Click the button to get points");
+  button = createButton("click");
+  button.mousePressed(increaseScore);
+  nameInput = createInput("name");
+  submitButton = createButton("submit");
+  submitButton.mousePressed(submitScore);
 }
 
-function mouseReleased() {
-  addCircle(tempCircle);
-  tempCircle = null;
-  // prevent default
-  return false;
+function draw() {
+  background(200);
+  textSize(100);
+  textAlign(CENTER);
+  text(score, width / 2, height / 2);
 }
 
-function windowResized() {
-  resizeCanvas(windowWidth, windowHeight);
+function increaseScore() {
+  score++;
+}
+
+function submitScore() {
+  let data = {
+    name: nameInput.value(),
+    score: score,
+  };
+
+  // link to node
+  const scoreRef = db.ref(database, "scores");
+  // create a new entry
+  const newScore = db.push(scoreRef);
+  // add the data to it
+  db.set(newScore, data);
+  // initialize score variable
+  score = 0;
 }
